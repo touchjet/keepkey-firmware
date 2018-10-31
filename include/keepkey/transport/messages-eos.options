@@ -1,0 +1,16 @@
+EosGetPublicKey.address_n             max_count:8
+
+EosPublicKey.public_key               max_size:32   # FIXME: actual value?
+
+EosSignTx.address_n                   max_count:8
+EosSignTx.chain_id                    max_size:32
+
+EosActionCommon.authorization         max_count:16  # FIXME: actual value?
+
+EosActionTransfer.memo                max_size:32   # FIXME: actual value?
+
+EosActionVoteProducer.producers       max_count:30
+
+
+EosSignedTx.signature_r               max_size:32
+EosSignedTx.signature_s               max_size:32
