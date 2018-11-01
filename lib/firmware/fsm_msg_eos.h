@@ -47,7 +47,7 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
 
     // TODO: check pin
 
-    eos_signingInit();
+    eos_signingInit(msg->num_actions, &msg->header);
 
     RESP_INIT(EosTxActionRequest);
     msg_write(MessageType_MessageType_EosTxActionRequest, resp);
@@ -59,17 +59,13 @@ static bool eos_transfer(const EosActionCommon *common,
     (void)transfer;
 
     char asset[EOS_ASSET_STR_SIZE];
-    eos_formatAsset(&transfer->quantity, asset);
-
     char from[EOS_NAME_STR_SIZE];
-    eos_formatName(transfer->from, from);
-
     char to[EOS_NAME_STR_SIZE];
-    eos_formatName(transfer->to, to);
-
     if (!confirm(ButtonRequestType_ButtonRequest_ConfirmOutput,
                  "Send", "Do you want to send %s from %s to %s?",
-                 asset, from, to)) {
+                 eos_formatAsset(&transfer->quantity, asset),
+                 eos_formatName(transfer->from, from),
+                 eos_formatName(transfer->to, to))) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
         eos_signingAbort();
         return false;
@@ -103,14 +99,10 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
         return;
     }
 
-    if (!confirm(ButtonRequestType_ButtonRequest_SignTx,
-                 "Sign Transaction", "Do you really want to sign this EOS transaction?")) {
-        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
-        eos_signingAbort();
-        return;
-    }
-
     RESP_INIT(EosSignedTx);
-    eos_sign(resp);
+
+    if (!eos_signTx(resp))
+        return;
+
     msg_write(MessageType_MessageType_EosSignedTx, resp);
 }

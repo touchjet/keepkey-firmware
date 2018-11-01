@@ -20,18 +20,22 @@
 #ifndef KEEPKEY_FIRMWARE_EOS_H
 #define KEEPKEY_FIRMWARE_EOS_H
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #define EOS_ASSET_STR_SIZE 32 /* FIXME: blind guess */
-#define EOS_NAME_STR_SIZE  32 /* FIXME: blind guess */
+#define EOS_NAME_STR_SIZE  (12 + 1 + 1)
 
 typedef struct _EosAsset EosAsset;
 typedef struct _EosSignedTx EosSignedTx;
 typedef struct _EosActionCommon EosActionCommon;
 typedef struct _EosActionTransfer EosActionTransfer;
+typedef struct _EosTxHeader EosTxHeader;
 
-void eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]);
-void eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
+char *eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]);
+char *eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
 
-void eos_signingInit(void);
+void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header);
 
 bool eos_signingIsInited(void);
 
@@ -43,6 +47,6 @@ bool eos_signingIsFinished(void);
 bool eos_compileActionTransfer(const EosActionCommon *common,
                                const EosActionTransfer *transfer);
 
-void eos_sign(EosSignedTx *sig);
+bool eos_signTx(EosSignedTx *sig);
 
 #endif
