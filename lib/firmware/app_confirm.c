@@ -252,14 +252,12 @@ bool confirm_transaction_output_no_bold(ButtonRequestType button_request,
  */
 bool confirm_transaction(const char *total_amount, const char *fee)
 {
-    if(strcmp(fee, "0.0 BTC") == 0)
-    {
+    if (!fee || strcmp(fee, "0.0 BTC") == 0) {
         return confirm(ButtonRequestType_ButtonRequest_SignTx,
-                       "Transaction", "Do you want to send %s from your wallet?",
+                       "Transaction",
+                       "Do you want to send %s from your wallet?",
                        total_amount);
-    }
-    else
-    {
+    } else {
         return confirm(ButtonRequestType_ButtonRequest_SignTx,
                        "Transaction",
                        "Do you want to send %s from your wallet? This includes a transaction fee of %s.",
