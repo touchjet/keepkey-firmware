@@ -23,8 +23,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#define EOS_ASSET_STR_SIZE 32 /* FIXME: blind guess */
 #define EOS_NAME_STR_SIZE  (12 + 1 + 1)
+#define EOS_ASSET_STR_SIZE (12 + 1 + 12 + 1)
 
 typedef struct _EosAsset EosAsset;
 typedef struct _EosSignedTx EosSignedTx;
@@ -32,8 +32,11 @@ typedef struct _EosActionCommon EosActionCommon;
 typedef struct _EosActionTransfer EosActionTransfer;
 typedef struct _EosTxHeader EosTxHeader;
 
-char *eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]);
-char *eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
+/// \returns true iff the asset can be correctly decoded.
+bool eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]);
+
+/// \returns true iff the name can be correctly decoded.
+bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
 
 void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header);
 

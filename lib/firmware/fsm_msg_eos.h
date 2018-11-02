@@ -59,13 +59,20 @@ static bool eos_transfer(const EosActionCommon *common,
     (void)transfer;
 
     char asset[EOS_ASSET_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatAsset(&transfer->quantity, asset),
+                    "Invalid asset format", false);
+
     char from[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(transfer->from, from),
+                    "Invalid name", false);
+
     char to[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(transfer->to, to),
+                    "Invalid name", false);
+
     if (!confirm(ButtonRequestType_ButtonRequest_ConfirmOutput,
                  "Send", "Do you want to send %s from %s to %s?",
-                 eos_formatAsset(&transfer->quantity, asset),
-                 eos_formatName(transfer->from, from),
-                 eos_formatName(transfer->to, to))) {
+                 asset, from, to)) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
         eos_signingAbort();
         return false;

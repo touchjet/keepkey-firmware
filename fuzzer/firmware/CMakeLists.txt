@@ -19,3 +19,6 @@ set(libraries
 
 add_executable(fuzz-eos_formatName eos_formatName.cpp)
 target_link_libraries(fuzz-eos_formatName ${libraries})
+
+add_executable(fuzz-eos_formatAsset eos_formatAsset.cpp)
+target_link_libraries(fuzz-eos_formatAsset ${libraries})

@@ -31,13 +31,50 @@ static CONFIDENTIAL Hasher hasher_preimage;
 static EosTxHeader header;
 static uint32_t actions_remaining = 0;
 
-char *eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]) {
-    memzero(str, EOS_ASSET_STR_SIZE);
-    return str;
+bool eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]) {
+    memset(str, 0, EOS_ASSET_STR_SIZE);
+
+    // Precision stored in low 8 bits
+    uint8_t p = asset->symbol & 0xff;
+    int64_t v = asset->amount;
+    char *s = str;
+
+    // Value
+    if (v < 0)                   { *s++ = '-'; v = -v; } // FIXME: INT64_MIN ?
+    if (v > 1000000000 || p > 8) { *s++ = '0' + v / 1000000000 % 10; }
+    if (p == 9)                  { *s++ = '.'; }
+    if (v > 100000000  || p > 7) { *s++ = '0' + v / 100000000  % 10; }
+    if (p == 8)                  { *s++ = '.'; }
+    if (v > 10000000   || p > 6) { *s++ = '0' + v / 10000000   % 10; }
+    if (p == 7)                  { *s++ = '.'; }
+    if (v > 1000000    || p > 5) { *s++ = '0' + v / 1000000    % 10; }
+    if (p == 6)                  { *s++ = '.'; }
+    if (v > 100000     || p > 4) { *s++ = '0' + v / 100000     % 10; }
+    if (p == 5)                  { *s++ = '.'; }
+    if (v > 10000      || p > 3) { *s++ = '0' + v / 10000      % 10; }
+    if (p == 4)                  { *s++ = '.'; }
+    if (v > 1000       || p > 2) { *s++ = '0' + v / 1000       % 10; }
+    if (p == 3)                  { *s++ = '.'; }
+    if (v > 100        || p > 1) { *s++ = '0' + v / 100        % 10; }
+    if (p == 2)                  { *s++ = '.'; }
+    if (v > 10         || p > 0) { *s++ = '0' + v / 10         % 10; }
+    if (p == 1)                  { *s++ = '.'; }
+                                   *s++ = '0' + v              % 10;
+    *s++ = ' ';
+
+    // Symbol
+    for (int i = 0; i < 7; i++) {
+        char c = (char)((asset->symbol >> (i+1)*8) & 0xff);
+        if (!('A' <= c && c <= 'Z') && c != 0)
+            return false; // Invalid symbol
+        *s++ = c;
+    }
+
+    return true;
 }
 
 /// Ported from EOSIO libraries/chain/name.cpp
-char *eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]) {
+bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]) {
     memset(str, '.', EOS_NAME_STR_SIZE);
     static const char *charmap = ".12345abcdefghijklmnopqrstuvwxyz";
 
@@ -52,7 +89,7 @@ char *eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]) {
         str[i] = '\0';
     }
 
-    return str;
+    return true;
 }
 
 void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header) {
