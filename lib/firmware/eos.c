@@ -188,6 +188,8 @@ bool eos_signTx(EosSignedTx *tx) {
 
     // TODO: confirm max_cpu_usage_ms
 
+    // TODO: confirm expiration
+
     // TODO: confirm delay_sec
 
     if (!confirm(ButtonRequestType_ButtonRequest_SignTx,
