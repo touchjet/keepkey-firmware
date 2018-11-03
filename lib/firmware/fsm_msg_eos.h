@@ -69,6 +69,11 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
     CHECK_PARAM(msg->has_num_actions && 0 < msg->num_actions,
                 "Eos transaction must have actions");
 
+    CHECK_PARAM(msg->header.max_cpu_usage_ms < UINT8_MAX,
+                "Value overflow");
+    CHECK_PARAM(msg->header.ref_block_num < UINT16_MAX,
+                "Value overflow");
+
     CHECK_INITIALIZED
 
     CHECK_PIN_TXSIGN
@@ -78,7 +83,7 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
     if (!node) return;
     hdnode_fill_public_key(node);
 
-    eos_signingInit(msg->num_actions, &msg->header, node);
+    eos_signingInit(msg->chain_id.bytes, msg->num_actions, &msg->header, node);
 
     RESP_INIT(EosTxActionRequest);
     msg_write(MessageType_MessageType_EosTxActionRequest, resp);

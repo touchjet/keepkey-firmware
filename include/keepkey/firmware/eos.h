@@ -51,14 +51,16 @@ bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
 bool eos_getPublicKey(const HDNode *node, const curve_info *curve,
                       char *str, size_t len);
 
-void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header,
-                     const HDNode *node);
+void eos_signingInit(const uint8_t *chain_id, uint32_t num_actions,
+                     const EosTxHeader *_header, const HDNode *node);
 
 bool eos_signingIsInited(void);
 
 void eos_signingAbort(void);
 
 bool eos_signingIsFinished(void);
+
+void eos_hashUInt(Hasher *hasher, uint64_t val);
 
 /// \returns true iff successful.
 bool eos_compileActionCommon(const EosActionCommon *common);

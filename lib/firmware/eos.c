@@ -132,24 +132,36 @@ bool eos_getPublicKey(const HDNode *n, const curve_info *curve, char *pubkey, si
     return true;
 }
 
-void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header, const HDNode *_node) {
+// https://github.com/EOSIO/fc/blob/30eb81c1d995f9cd9834701e03b83ec7e6468a0f/include/fc/io/raw.hpp#L214
+void eos_hashUInt(Hasher *hasher, uint64_t val) {
+    do {
+        uint8_t b = ((uint8_t)val) & 0x7f;
+        val >>= 7;
+        b |= ((val > 0) << 7);
+        hasher_Update(hasher, &b, 1);
+    } while (val);
+}
+
+void eos_signingInit(const uint8_t *chain_id, uint32_t num_actions,
+                     const EosTxHeader *_header, const HDNode *_node) {
     hasher_Init(&hasher_preimage, HASHER_SHA2);
 
     memcpy(&header, _header, sizeof(header));
     memcpy(&node, _node, sizeof(node));
 
+    hasher_Update(&hasher_preimage, chain_id, 32);
     hasher_Update(&hasher_preimage, (const uint8_t*)&header.expiration, 4);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&header.ref_block_num, 4);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&header.ref_block_num, 2);
     hasher_Update(&hasher_preimage, (const uint8_t*)&header.ref_block_prefix, 4);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&header.max_net_usage_words, 4);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&header.max_cpu_usage_ms, 4);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&header.delay_sec, 4);
+    eos_hashUInt(&hasher_preimage, header.max_net_usage_words);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&header.max_cpu_usage_ms, 1);
+    eos_hashUInt(&hasher_preimage, header.delay_sec);
 
-    // context_free_actions. size (bytes), followed by data
-    hasher_Update(&hasher_preimage, (const uint8_t*)"\x00", 1);
+    // context_free_actions. count, followed by each action
+    eos_hashUInt(&hasher_preimage, 0);
 
-    // TODO: should this have variable length encoding?
-    hasher_Update(&hasher_preimage, (const uint8_t*)&num_actions, 4);
+    // actions. count, followed by each action
+    eos_hashUInt(&hasher_preimage, num_actions);
 
     actions_remaining = num_actions;
     inited = true;
@@ -228,8 +240,8 @@ bool eos_signTx(EosSignedTx *tx) {
         return false;
     }
 
-    // transaction_extensions. size (bytes), followed by data
-    hasher_Update(&hasher_preimage, (const uint8_t*)"\x00", 1);
+    // transaction_extensions. count, followed by data
+    eos_hashUInt(&hasher_preimage, 0);
 
     // context_free_data. if nonempty, the sha256 digest of it. otherwise:
     hasher_Update(&hasher_preimage, (const uint8_t*)
