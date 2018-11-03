@@ -13,8 +13,16 @@ TEST(EOS, FormatNameVec) {
         const char *name;
         bool ret;
     } vec[] = {
-        { 0x5530ea0000000000, "eosio", true },
-        { 0x0000000000ea3055, nullptr, true },
+        { 0x5530ea0000000000, "eosio",        true },
+        { 0x0000000000ea3055, nullptr,        true },
+        { 0x5530ea031ec65520, "eosio.system", true },
+        { 0xb68d3cbb3e000000, "quantity",     true },
+        { 0x9ab864229a9e4000, "newaccount",   true },
+        { 0xcdcd3c2d57000000, "transfer",     true },
+        { 0xd4d2a8a986ca8fc0, "undelegatebw", true },
+        { 0xc2b263b800000000, "setabi",       true },
+        { 0xa726ab8000000000, "owner",        true },
+        { 0x3232eda800000000, "active",       true },
     };
 
     for (const auto &v : vec) {
