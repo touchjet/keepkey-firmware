@@ -32,17 +32,19 @@ TEST(EOS, FormatAssetVec) {
         std::string expected;
         bool ret;
     } vec[] = {
-        { 7654321L, 0x000000534f4504L, "765.4321 EOS",      true },
-        {      42L, 0x004e45584f4600L, "42 FOXEN",          true },
-        {      42L, 0x004e45584f4601L, "4.2 FOXEN",         true },
-        {      42L, 0x004e45584f4602L, "0.42 FOXEN",        true },
-        {      42L, 0x004e45584f4603L, "0.042 FOXEN",       true },
-        {      42L, 0x004e45584f4604L, "0.0042 FOXEN",      true },
-        {      42L, 0x004e45584f4605L, "0.00042 FOXEN",     true },
-        {      42L, 0x004e45584f4606L, "0.000042 FOXEN",    true },
-        {      42L, 0x004e45584f4607L, "0.0000042 FOXEN",   true },
-        {      42L, 0x004e45584f4608L, "0.00000042 FOXEN",  true },
-        {      42L, 0x004e45584f4609L, "0.000000042 FOXEN", true },
+        {  7654321L, 0x000000534f4504L, "765.4321 EOS",      true },
+        {       42L, 0x004e45584f4600L, "42 FOXEN",          true },
+        {       42L, 0x004e45584f4601L, "4.2 FOXEN",         true },
+        {       42L, 0x004e45584f4602L, "0.42 FOXEN",        true },
+        {       42L, 0x004e45584f4603L, "0.042 FOXEN",       true },
+        {       42L, 0x004e45584f4604L, "0.0042 FOXEN",      true },
+        {       42L, 0x004e45584f4605L, "0.00042 FOXEN",     true },
+        {       42L, 0x004e45584f4606L, "0.000042 FOXEN",    true },
+        {       42L, 0x004e45584f4607L, "0.0000042 FOXEN",   true },
+        {       42L, 0x004e45584f4608L, "0.00000042 FOXEN",  true },
+        {       42L, 0x004e45584f4609L, "0.000000042 FOXEN", true },
+        {      -10L, 0x00000053595305L, "-0.00010 SYS",      true },
+        { INT64_MIN, 0x00000053595303L, "-9223372036854775.808 SYS", true },
     };
 
     for (const auto &v : vec) {

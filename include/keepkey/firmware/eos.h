@@ -24,7 +24,7 @@
 #include <stdbool.h>
 
 #define EOS_NAME_STR_SIZE  (12 + 1 + 1)
-#define EOS_ASSET_STR_SIZE (12 + 1 + 12 + 1)
+#define EOS_ASSET_STR_SIZE (1 + 21 + 1 + 12 + 1)
 
 typedef struct _EosAsset EosAsset;
 typedef struct _EosSignedTx EosSignedTx;
