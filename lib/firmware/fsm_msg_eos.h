@@ -86,8 +86,7 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
 
 static bool eos_transfer(const EosActionCommon *common,
                          const EosActionTransfer *transfer) {
-    (void)common;
-    (void)transfer;
+    CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
 
     char asset[EOS_ASSET_STR_SIZE];
     CHECK_PARAM_RET(eos_formatAsset(&transfer->quantity, asset),
