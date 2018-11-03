@@ -129,6 +129,11 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
 
     if (msg->has_transfer && !eos_transfer(&msg->common, &msg->transfer))
         return;
+    else {
+        fsm_sendFailure(FailureType_Failure_Other, "Unknown action");
+        eos_signingAbort();
+        return;
+    }
 
     if (!eos_signingIsFinished()) {
         RESP_INIT(EosTxActionRequest);
