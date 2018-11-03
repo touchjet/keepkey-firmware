@@ -20,9 +20,9 @@
 void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
     (void)msg;
 
-    // TODO: check initialized
+    CHECK_INITIALIZED
 
-    // TODO: check PIN
+    CHECK_PIN
 
     if (msg->address_n_count != 3 ||
         msg->address_n[0] != (0x80000000 |  44) ||
@@ -31,6 +31,11 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
         // TODO: warn unusual BIP32 path
         // TODO TODO: make this common betwee BTC clones / ETH / this
     }
+
+    uint32_t fingerprint;
+    HDNode *node = fsm_getDerivedNode(SECP256K1_NAME, msg->address_n, msg->address_n_count, &fingerprint);
+    if (!node) return;
+    hdnode_fill_public_key(node);
 
     RESP_INIT(EosPublicKey);
 
@@ -43,11 +48,16 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
     CHECK_PARAM(msg->has_num_actions && 0 < msg->num_actions,
                 "Eos transaction must have actions");
 
-    // TODO: check initialized
+    CHECK_INITIALIZED
 
-    // TODO: check pin
+    CHECK_PIN_TXSIGN
 
-    eos_signingInit(msg->num_actions, &msg->header);
+    uint32_t fingerprint;
+    HDNode *node = fsm_getDerivedNode(SECP256K1_NAME, msg->address_n, msg->address_n_count, &fingerprint);
+    if (!node) return;
+    hdnode_fill_public_key(node);
+
+    eos_signingInit(msg->num_actions, &msg->header, node);
 
     RESP_INIT(EosTxActionRequest);
     msg_write(MessageType_MessageType_EosTxActionRequest, resp);

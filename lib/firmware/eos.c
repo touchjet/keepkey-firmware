@@ -21,13 +21,16 @@
 
 #include "keepkey/board/confirm_sm.h"
 #include "keepkey/firmware/fsm.h"
+#include "trezor/crypto/bip32.h"
 #include "trezor/crypto/hasher.h"
 #include "trezor/crypto/memzero.h"
+#include "trezor/crypto/secp256k1.h"
 
 #include "messages-eos.pb.h"
 
 static bool inited = false;
 static CONFIDENTIAL Hasher hasher_preimage;
+static CONFIDENTIAL HDNode node;
 static EosTxHeader header;
 static uint32_t actions_remaining = 0;
 
@@ -114,10 +117,11 @@ bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]) {
     return true;
 }
 
-void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header) {
+void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header, const HDNode *_node) {
     hasher_Init(&hasher_preimage, HASHER_SHA2);
 
     memcpy(&header, _header, sizeof(header));
+    memcpy(&node, _node, sizeof(node));
 
     hasher_Update(&hasher_preimage, (const uint8_t*)&header.expiration, 4);
     hasher_Update(&hasher_preimage, (const uint8_t*)&header.ref_block_num, 4);
@@ -148,6 +152,7 @@ void eos_signingAbort(void) {
     inited = false;
     memzero(&hasher_preimage, sizeof(hasher_preimage));
     memzero(&header, sizeof(header));
+    memzero(&node, sizeof(node));
 }
 
 bool eos_compileActionTransfer(const EosActionCommon *common,
@@ -198,6 +203,29 @@ bool eos_signTx(EosSignedTx *tx) {
         eos_signingAbort();
         return false;
     }
+
+    uint8_t hash[32];
+    hasher_Final(&hasher_preimage, hash);
+
+    uint8_t sig[64];
+    uint8_t v;
+    if (ecdsa_sign_digest(&secp256k1, node.private_key, hash, sig, &v, NULL) != 0) {
+        fsm_sendFailure(FailureType_Failure_Other, "Signing failed");
+        eos_signingAbort();
+        return false;
+    }
+    memzero(&node, sizeof(node));
+
+    tx->has_signature_v = true;
+    tx->signature_v = v;
+
+    tx->has_signature_r = true;
+    tx->signature_r.size = 32;
+    memcpy(tx->signature_r.bytes, sig, 32);
+
+    tx->has_signature_s = true;
+    tx->signature_s.size = 32;
+    memcpy(tx->signature_s.bytes, sig + 32, 32);
 
     return true;
 }

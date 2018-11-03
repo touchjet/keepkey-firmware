@@ -20,6 +20,8 @@
 #ifndef KEEPKEY_FIRMWARE_EOS_H
 #define KEEPKEY_FIRMWARE_EOS_H
 
+#include "trezor/crypto/bip32.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -38,7 +40,8 @@ bool eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]);
 /// \returns true iff the name can be correctly decoded.
 bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
 
-void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header);
+void eos_signingInit(uint32_t num_actions, const EosTxHeader *_header,
+                     const HDNode *node);
 
 bool eos_signingIsInited(void);
 
