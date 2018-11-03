@@ -182,6 +182,28 @@ void eos_signingAbort(void) {
     memzero(&node, sizeof(node));
 }
 
+bool eos_compileAsset(const EosAsset *asset) {
+    if (!asset->has_amount)
+        return false;
+
+    if (!asset->has_symbol)
+        return false;
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&asset->amount, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&asset->symbol, 8);
+    return true;
+}
+
+bool eos_compileString(const char *str) {
+    if (!str)
+        return false;
+    uint32_t len = strlen(str);
+    eos_hashUInt(&hasher_preimage, len);
+    if (len)
+        hasher_Update(&hasher_preimage, (const uint8_t*)str, len);
+    return true;
+}
+
 bool eos_compileActionCommon(const EosActionCommon *common) {
     if (!common->has_account)
         return false;
@@ -195,6 +217,7 @@ bool eos_compileActionCommon(const EosActionCommon *common) {
     hasher_Update(&hasher_preimage, (const uint8_t*)&common->account, 8);
     hasher_Update(&hasher_preimage, (const uint8_t*)&common->name, 8);
 
+    eos_hashUInt(&hasher_preimage, common->authorization_count);
     for (size_t i = 0; i < common->authorization_count; i++) {
         if (!eos_compilePermissionLevel(&common->authorization[i]))
             return false;
@@ -221,14 +244,21 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
     if (!(actions_remaining--))
         return false;
 
-    (void)common;
-    (void)transfer;
+    if (!eos_compileActionCommon(common))
+        return false;
 
-    uint8_t action_buf[4]; // FIXME: size
-    size_t action_size = sizeof(action_buf);
-    memzero(action_buf, sizeof(action_buf));
+    hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->from, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->to, 8);
 
-    hasher_Update(&hasher_preimage, action_buf, action_size);
+    if (!eos_compileAsset(&transfer->quantity))
+        return false;
+
+    size_t memo_len = strlen(transfer->memo);
+    if (256 <= memo_len)
+        return false;
+
+    if (255 < strlen(transfer->memo) || !eos_compileString(transfer->memo))
+        return false;
 
     return true;
 }
