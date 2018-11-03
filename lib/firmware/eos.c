@@ -21,6 +21,7 @@
 
 #include "keepkey/board/confirm_sm.h"
 #include "keepkey/firmware/fsm.h"
+#include "trezor/crypto/base58.h"
 #include "trezor/crypto/bip32.h"
 #include "trezor/crypto/hasher.h"
 #include "trezor/crypto/memzero.h"
@@ -112,6 +113,20 @@ bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]) {
 
     for (uint32_t i = EOS_NAME_STR_SIZE - 1; str[i] == '.'; --i) {
         str[i] = '\0';
+    }
+
+    return true;
+}
+
+bool eos_getPublicKey(const HDNode *n, const curve_info *curve, char *pubkey, size_t len) {
+    const char *prefix = "EOS_K1_";
+    const size_t prefix_len = strlen(prefix);
+    strlcpy(pubkey, prefix, len);
+
+    if (!base58_encode_check(n->public_key, 33, curve->hasher_base58,
+                             pubkey + prefix_len,
+                             len - prefix_len)) {
+        return false;
     }
 
     return true;

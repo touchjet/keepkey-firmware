@@ -18,26 +18,47 @@
  */
 
 void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
-    (void)msg;
-
     CHECK_INITIALIZED
 
     CHECK_PIN
 
-    if (msg->address_n_count != 3 ||
-        msg->address_n[0] != (0x80000000 |  44) ||
-        msg->address_n[1] != (0x80000000 | 194) ||
-        (msg->address_n[2] & 0x80000000) == 0x80000000) {
-        // TODO: warn unusual BIP32 path
-        // TODO TODO: make this common betwee BTC clones / ETH / this
-    }
+    const CoinType *coin = fsm_getCoin(true, "EOS");
+    if (!coin) return;
+
+    const curve_info *curve = get_curve_by_name(coin->curve_name);
+    if (!curve) return;
 
     uint32_t fingerprint;
-    HDNode *node = fsm_getDerivedNode(SECP256K1_NAME, msg->address_n, msg->address_n_count, &fingerprint);
+    HDNode *node = fsm_getDerivedNode(coin->curve_name, msg->address_n, msg->address_n_count, &fingerprint);
     if (!node) return;
     hdnode_fill_public_key(node);
 
     RESP_INIT(EosPublicKey);
+
+    if (!eos_getPublicKey(node, curve, resp->public_key, sizeof(resp->public_key))) {
+        fsm_sendFailure(FailureType_Failure_Other, "Could not derive EOS pubkey");
+        return;
+    }
+
+    if (msg->has_show_display && msg->show_display) {
+        char node_str[NODE_STRING_LENGTH];
+        if (!bip32_node_to_string(node_str, sizeof(node_str), coin,
+                                  msg->address_n,
+                                  msg->address_n_count,
+                                  /*whole_account=*/true) &&
+            !bip32_path_to_string(node_str, sizeof(node_str),
+                                  msg->address_n, msg->address_n_count)) {
+            memset(node_str, 0, sizeof(node_str));
+        }
+
+        // Not really an xpub, but it'll do.
+        if (!confirm_xpub(node_str, resp->public_key)) {
+            fsm_sendFailure(FailureType_Failure_ActionCancelled,
+                            "Show EOS public key cancelled.");
+            layoutHome();
+            return;
+        }
+    }
 
     msg_write(MessageType_MessageType_EosPublicKey, resp);
 }
