@@ -170,6 +170,40 @@ void eos_signingAbort(void) {
     memzero(&node, sizeof(node));
 }
 
+bool eos_compileActionCommon(const EosActionCommon *common) {
+    if (!common->has_account)
+        return false;
+
+    if (!common->has_name)
+        return false;
+
+    if (!common->authorization_count)
+        return false;
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&common->account, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&common->name, 8);
+
+    for (size_t i = 0; i < common->authorization_count; i++) {
+        if (!eos_compilePermissionLevel(&common->authorization[i]))
+            return false;
+    }
+
+    return true;
+}
+
+bool eos_compilePermissionLevel(const EosPermissionLevel *auth) {
+    if (!auth->has_actor)
+        return false;
+
+    if (!auth->has_permission)
+        return false;
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&auth->actor, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&auth->permission, 8);
+
+    return true;
+}
+
 bool eos_compileActionTransfer(const EosActionCommon *common,
                                const EosActionTransfer *transfer) {
     if (!(actions_remaining--))

@@ -28,10 +28,11 @@
 #define EOS_NAME_STR_SIZE  (12 + 1 + 1)
 #define EOS_ASSET_STR_SIZE (1 + 21 + 1 + 12 + 1)
 
-typedef struct _EosAsset EosAsset;
-typedef struct _EosSignedTx EosSignedTx;
 typedef struct _EosActionCommon EosActionCommon;
 typedef struct _EosActionTransfer EosActionTransfer;
+typedef struct _EosAsset EosAsset;
+typedef struct _EosPermissionLevel EosPermissionLevel;
+typedef struct _EosSignedTx EosSignedTx;
 typedef struct _EosTxHeader EosTxHeader;
 
 /// \returns true iff the asset can be correctly decoded.
@@ -52,6 +53,12 @@ bool eos_signingIsInited(void);
 void eos_signingAbort(void);
 
 bool eos_signingIsFinished(void);
+
+/// \returns true iff successful.
+bool eos_compileActionCommon(const EosActionCommon *common);
+
+/// \returns true iff successful.
+bool eos_compilePermissionLevel(const EosPermissionLevel *auth);
 
 /// \returns true iff successful.
 bool eos_compileActionTransfer(const EosActionCommon *common,
