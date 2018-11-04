@@ -89,35 +89,6 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
     msg_write(MessageType_MessageType_EosTxActionRequest, resp);
 }
 
-static bool eos_transfer(const EosActionCommon *common,
-                         const EosActionTransfer *transfer) {
-    CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
-
-    char asset[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&transfer->quantity, asset),
-                    "Invalid asset format", false);
-
-    char from[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(transfer->from, from),
-                    "Invalid name", false);
-
-    char to[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(transfer->to, to),
-                    "Invalid name", false);
-
-    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmOutput,
-                 "Send", "Do you want to send %s from %s to %s?",
-                 asset, from, to)) {
-        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
-        eos_signingAbort();
-        return false;
-    }
-
-    // TODO: confirm memo
-
-    return eos_compileActionTransfer(common, transfer);
-}
-
 void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
     CHECK_PARAM(eos_signingIsInited(), "Must call EosSignTx to initiate signing");
     CHECK_PARAM(msg->has_common, "Must have common");
@@ -132,7 +103,7 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
         (int)msg->has_vote_producer;
     CHECK_PARAM(action_count == 1, "Eos signing can only handle one action at a time");
 
-    if (msg->has_transfer && !eos_transfer(&msg->common, &msg->transfer))
+    if (msg->has_transfer && !eos_compileActionTransfer(&msg->common, &msg->transfer))
         return;
     else {
         fsm_sendFailure(FailureType_Failure_Other, "Unknown action");

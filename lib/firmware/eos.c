@@ -21,6 +21,7 @@
 
 #include "keepkey/board/confirm_sm.h"
 #include "keepkey/firmware/fsm.h"
+#include "keepkey/firmware/home_sm.h"
 #include "trezor/crypto/base58.h"
 #include "trezor/crypto/bip32.h"
 #include "trezor/crypto/hasher.h"
@@ -28,6 +29,13 @@
 #include "trezor/crypto/secp256k1.h"
 
 #include "messages-eos.pb.h"
+
+#define CHECK_PARAM_RET(cond, errormsg, retval) \
+    if (!(cond)) { \
+        fsm_sendFailure(FailureType_Failure_Other, (errormsg)); \
+        layoutHome(); \
+        return retval; \
+    }
 
 static bool inited = false;
 static CONFIDENTIAL Hasher hasher_preimage;
@@ -243,6 +251,30 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
                                const EosActionTransfer *transfer) {
     if (!(actions_remaining--))
         return false;
+
+    CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
+
+    char asset[EOS_ASSET_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatAsset(&transfer->quantity, asset),
+                    "Invalid asset format", false);
+
+    char from[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(transfer->from, from),
+                    "Invalid name", false);
+
+    char to[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(transfer->to, to),
+                    "Invalid name", false);
+
+    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmOutput,
+                 "Send", "Do you want to send %s from %s to %s?",
+                 asset, from, to)) {
+        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
+        eos_signingAbort();
+        return false;
+    }
+
+    // TODO: confirm memo
 
     if (!eos_compileActionCommon(common))
         return false;
