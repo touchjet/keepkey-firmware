@@ -286,10 +286,7 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
         return false;
 
     size_t memo_len = strlen(transfer->memo);
-    if (256 <= memo_len)
-        return false;
-
-    if (255 < strlen(transfer->memo) || !eos_compileString(transfer->memo))
+    if (256 < memo_len || !eos_compileString(transfer->memo))
         return false;
 
     return true;
