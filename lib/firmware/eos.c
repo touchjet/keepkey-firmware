@@ -267,7 +267,7 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
                     "Invalid name", false);
 
     if (!confirm(ButtonRequestType_ButtonRequest_ConfirmOutput,
-                 "Send", "Do you want to send %s from %s to %s?",
+                 "Transfer", "Do you want to send %s from %s to %s?",
                  asset, from, to)) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
         eos_signingAbort();
