@@ -1,6 +1,6 @@
 EosGetPublicKey.address_n             max_count:8
 
-EosPublicKey.public_key               max_size:32   # FIXME: actual value?
+EosPublicKey.public_key               max_size:65
 
 EosSignTx.address_n                   max_count:8
 EosSignTx.chain_id                    max_size:32

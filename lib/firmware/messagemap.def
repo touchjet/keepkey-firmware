@@ -74,6 +74,7 @@
     MSG_OUT(MessageType_MessageType_EthereumTxRequest,              EthereumTxRequest,           NO_PROCESS_FUNC,                  AnyVariant)
     MSG_OUT(MessageType_MessageType_EthereumMessageSignature,       EthereumMessageSignature,    NO_PROCESS_FUNC,                  AnyVariant)
 
+    MSG_OUT(MessageType_MessageType_EosPublicKey,                   EosPublicKey,                NO_PROCESS_FUNC,                  AnyVariant)
     MSG_OUT(MessageType_MessageType_EosTxActionRequest,             EosTxActionRequest,          NO_PROCESS_FUNC,                  AnyVariant)
     MSG_OUT(MessageType_MessageType_EosSignedTx,                    EosSignedTx,                 NO_PROCESS_FUNC,                  AnyVariant)
 

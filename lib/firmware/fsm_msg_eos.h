@@ -37,8 +37,10 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
 
     if (!eos_getPublicKey(node, curve, resp->public_key, sizeof(resp->public_key))) {
         fsm_sendFailure(FailureType_Failure_Other, "Could not derive EOS pubkey");
+        layoutHome();
         return;
     }
+    resp->has_public_key = true;
 
     if (msg->has_show_display && msg->show_display) {
         char node_str[NODE_STRING_LENGTH];
@@ -60,6 +62,7 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
         }
     }
 
+    layoutHome();
     msg_write(MessageType_MessageType_EosPublicKey, resp);
 }
 
@@ -108,6 +111,7 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
     else {
         fsm_sendFailure(FailureType_Failure_Other, "Unknown action");
         eos_signingAbort();
+        layoutHome();
         return;
     }
 
@@ -122,5 +126,6 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
     if (!eos_signTx(resp))
         return;
 
+    layoutHome();
     msg_write(MessageType_MessageType_EosSignedTx, resp);
 }
