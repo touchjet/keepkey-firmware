@@ -126,12 +126,21 @@ bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]) {
     return true;
 }
 
-bool eos_getPublicKey(const HDNode *n, const curve_info *curve, char *pubkey, size_t len) {
-    const char *prefix = "EOS_K1_";
+bool eos_getPublicKey(const HDNode *n, const curve_info *curve, EosPublicKeyKind kind,
+                      char *pubkey, size_t len) {
+    const char *prefix = NULL;
+    switch (kind) {
+    case EosPublicKeyKind_EOS: prefix = "EOS"; break;
+    case EosPublicKeyKind_EOS_K1: prefix = "EOS_K1_"; break;
+    case EosPublicKeyKind_EOS_R1: return false;
+    }
+
     const size_t prefix_len = strlen(prefix);
     strlcpy(pubkey, prefix, len);
 
-    if (!base58_encode_check(n->public_key, 33, curve->hasher_base58,
+    (void)curve;
+
+    if (!base58_encode_check(n->public_key, 33, HASHER_RIPEMD,
                              pubkey + prefix_len,
                              len - prefix_len)) {
         return false;

@@ -35,7 +35,8 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
 
     RESP_INIT(EosPublicKey);
 
-    if (!eos_getPublicKey(node, curve, resp->public_key, sizeof(resp->public_key))) {
+    if (!eos_getPublicKey(node, curve, msg->kind,
+                          resp->public_key, sizeof(resp->public_key))) {
         fsm_sendFailure(FailureType_Failure_Other, "Could not derive EOS pubkey");
         layoutHome();
         return;
@@ -47,7 +48,7 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
         if (!bip32_node_to_string(node_str, sizeof(node_str), coin,
                                   msg->address_n,
                                   msg->address_n_count,
-                                  /*whole_account=*/true) &&
+                                  /*whole_account=*/false) &&
             !bip32_path_to_string(node_str, sizeof(node_str),
                                   msg->address_n, msg->address_n_count)) {
             memset(node_str, 0, sizeof(node_str));

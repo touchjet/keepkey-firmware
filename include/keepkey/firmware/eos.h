@@ -40,6 +40,7 @@ typedef struct _EosAsset EosAsset;
 typedef struct _EosPermissionLevel EosPermissionLevel;
 typedef struct _EosSignedTx EosSignedTx;
 typedef struct _EosTxHeader EosTxHeader;
+typedef enum _EosPublicKeyKind EosPublicKeyKind;
 
 /// \returns true iff the asset can be correctly decoded.
 bool eos_formatAsset(const EosAsset *asset, char str[EOS_ASSET_STR_SIZE]);
@@ -49,7 +50,7 @@ bool eos_formatName(uint64_t name, char str[EOS_NAME_STR_SIZE]);
 
 /// \returns true iff successful.
 bool eos_getPublicKey(const HDNode *node, const curve_info *curve,
-                      char *str, size_t len);
+                      EosPublicKeyKind kind, char *str, size_t len);
 
 void eos_signingInit(const uint8_t *chain_id, uint32_t num_actions,
                      const EosTxHeader *_header, const HDNode *node);
