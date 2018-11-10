@@ -54,8 +54,8 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
             memset(node_str, 0, sizeof(node_str));
         }
 
-        // Not really an xpub, but it'll do.
-        if (!confirm_xpub(node_str, resp->public_key)) {
+        if (!confirm(ButtonRequestType_ButtonRequest_Address, node_str,
+                     "%s", resp->public_key)) {
             fsm_sendFailure(FailureType_Failure_ActionCancelled,
                             "Show EOS public key cancelled.");
             layoutHome();
