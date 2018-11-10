@@ -279,7 +279,7 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
     CHECK_PARAM_RET(eos_formatName(transfer->receiver, receiver),
                     "Invalid name", false);
 
-    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmOutput,
+    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
                  "Transfer", "Do you want to send %s from %s to %s?",
                  asset, payer, receiver)) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
