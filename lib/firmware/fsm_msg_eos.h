@@ -107,9 +107,10 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
         (int)msg->has_vote_producer;
     CHECK_PARAM(action_count == 1, "Eos signing can only handle one action at a time");
 
-    if (msg->has_transfer && !eos_compileActionTransfer(&msg->common, &msg->transfer))
-        return;
-    else {
+    if (msg->has_transfer) {
+        if (!eos_compileActionTransfer(&msg->common, &msg->transfer))
+            goto action_compile_failed;
+    } else {
         fsm_sendFailure(FailureType_Failure_Other, "Unknown action");
         eos_signingAbort();
         layoutHome();
@@ -129,4 +130,11 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
 
     layoutHome();
     msg_write(MessageType_MessageType_EosSignedTx, resp);
+    return;
+
+action_compile_failed:
+    fsm_sendFailure(FailureType_Failure_Other, "Could not compile action");
+    eos_signingAbort();
+    layoutHome();
+    return;
 }
