@@ -338,7 +338,7 @@ bool eos_signTx(EosSignedTx *tx) {
     time_t expiry = header.expiration;
     char expiry_str[26];
     asctime_r(gmtime(&expiry), expiry_str);
-    expiry_str[MAX(strlen(expiry_str) - 1, 0U)] = 0; // cut off the '\n'
+    expiry_str[24] = 0; // cut off the '\n'
     uint32_t delay = header.delay_sec;
     if (!confirm(ButtonRequestType_ButtonRequest_SignTx,
                  "Sign Transaction",
