@@ -13,3 +13,4 @@ EosActionVoteProducer.producers       max_count:30
 
 EosSignedTx.signature_r               max_size:32
 EosSignedTx.signature_s               max_size:32
+EosSignedTx.hash                      max_size:32

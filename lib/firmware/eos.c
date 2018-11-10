@@ -315,6 +315,8 @@ static int eos_is_canonic(uint8_t v, uint8_t signature[64]) {
 }
 
 bool eos_signTx(EosSignedTx *tx) {
+    memzero(tx, sizeof(*tx));
+
     if (!eos_signingIsInited()) {
         fsm_sendFailure(FailureType_Failure_Other, "Must call EosSignTx first");
         eos_signingAbort();
@@ -352,12 +354,13 @@ bool eos_signTx(EosSignedTx *tx) {
         return false;
     }
 
-    uint8_t hash[32];
-    hasher_Final(&hasher_preimage, hash);
+    tx->has_hash = true;
+    tx->hash.size = 32;
+    hasher_Final(&hasher_preimage, tx->hash.bytes);
 
     uint8_t sig[64];
     uint8_t v;
-    if (ecdsa_sign_digest(&secp256k1, node.private_key, hash, sig, &v,
+    if (ecdsa_sign_digest(&secp256k1, node.private_key, tx->hash.bytes, sig, &v,
                           eos_is_canonic) != 0) {
         fsm_sendFailure(FailureType_Failure_Other, "Signing failed");
         eos_signingAbort();
