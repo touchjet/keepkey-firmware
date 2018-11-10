@@ -272,8 +272,8 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
     CHECK_PARAM_RET(eos_formatAsset(&transfer->quantity, asset),
                     "Invalid asset format", false);
 
-    char payer[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(transfer->payer, payer),
+    char sender[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(transfer->sender, sender),
                     "Invalid name", false);
 
     char receiver[EOS_NAME_STR_SIZE];
@@ -282,7 +282,7 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
 
     if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
                  "Transfer", "Do you want to send %s from %s to %s?",
-                 asset, payer, receiver)) {
+                 asset, sender, receiver)) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
         eos_signingAbort();
         return false;
@@ -293,7 +293,7 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
     if (!eos_compileActionCommon(common))
         return false;
 
-    hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->payer, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->sender, 8);
     hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->receiver, 8);
 
     if (!eos_compileAsset(&transfer->quantity))
