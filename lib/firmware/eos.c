@@ -30,12 +30,16 @@
 
 #include "messages-eos.pb.h"
 
+#include <time.h>
+
 #define CHECK_PARAM_RET(cond, errormsg, retval) \
     if (!(cond)) { \
         fsm_sendFailure(FailureType_Failure_Other, (errormsg)); \
         layoutHome(); \
         return retval; \
     }
+
+#define MAX(a, b) ({ typeof(a) _a = (a); typeof(b) _b = (b); _a > _b ? _a : _b; })
 
 static bool inited = false;
 static CONFIDENTIAL Hasher hasher_preimage;
@@ -331,12 +335,18 @@ bool eos_signTx(EosSignedTx *tx) {
 
     // TODO: confirm max_cpu_usage_ms
 
-    // TODO: confirm expiration
-
-    // TODO: confirm delay_sec
-
+    time_t expiry = header.expiration;
+    char expiry_str[26];
+    asctime_r(gmtime(&expiry), expiry_str);
+    expiry_str[MAX(strlen(expiry_str) - 1, 0U)] = 0; // cut off the '\n'
+    uint32_t delay = header.delay_sec;
     if (!confirm(ButtonRequestType_ButtonRequest_SignTx,
-                 "Sign Transaction", "Do you really want to sign this EOS transaction?")) {
+                 "Sign Transaction",
+                 "Do you want to sign this EOS transaction?\n"
+                 "Expiry: %s UTC\n"
+                 "Delay: %" PRIu32 "h%02" PRIu32 "m%02" PRIu32 "s",
+                 expiry_str,
+                 delay / 3600, (delay / 60) % 60, (delay % 60))) {
         fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
         eos_signingAbort();
         return false;
