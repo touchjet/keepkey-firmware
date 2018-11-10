@@ -30,6 +30,7 @@
 
 #include "messages-eos.pb.h"
 
+#include <stdio.h>
 #include <time.h>
 
 #define CHECK_PARAM_RET(cond, errormsg, retval) \
@@ -333,9 +334,25 @@ bool eos_signTx(EosSignedTx *tx) {
                   "\x00\x00\x00\x00\x00\x00\x00\x00"
                   "\x00\x00\x00\x00\x00\x00\x00\x00", 32);
 
-    // TODO: confirm max_usage_words
+    char ram_limit[8 + 5 + 14 + 1] = "WARNING: Unlimited RAM";
+    if (header.max_net_usage_words) {
+        snprintf(ram_limit, sizeof(ram_limit), "At most %" PRIu16 " bytes RAM",
+                 (uint16_t)header.max_net_usage_words);
+    }
 
-    // TODO: confirm max_cpu_usage_ms
+    char cpu_limit[8 + 5 + 11 + 1] = "WARNING: Unlimited CPU";
+    if (header.max_cpu_usage_ms) {
+        snprintf(cpu_limit, sizeof(cpu_limit), "At most %" PRIu8 " ms CPU",
+                 (uint8_t)header.max_cpu_usage_ms);
+    }
+
+    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosBudget,
+                 "Confirm Budget",
+                 "You may be billed for:\n%s\n%s",
+                 ram_limit, cpu_limit)) {
+        return false;
+    }
+
 
     time_t expiry = header.expiration;
     char expiry_str[26];

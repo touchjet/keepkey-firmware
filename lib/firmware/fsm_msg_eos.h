@@ -73,9 +73,9 @@ void fsm_msgEosSignTx(const EosSignTx *msg) {
     CHECK_PARAM(msg->has_num_actions && 0 < msg->num_actions,
                 "Eos transaction must have actions");
 
-    CHECK_PARAM(msg->header.max_cpu_usage_ms < UINT8_MAX,
+    CHECK_PARAM(msg->header.max_cpu_usage_ms <= UINT8_MAX,
                 "Value overflow");
-    CHECK_PARAM(msg->header.ref_block_num < UINT16_MAX,
+    CHECK_PARAM(msg->header.ref_block_num <= UINT16_MAX,
                 "Value overflow");
 
     CHECK_INITIALIZED
