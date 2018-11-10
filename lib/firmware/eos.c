@@ -301,6 +301,15 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
     return true;
 }
 
+static int eos_is_canonic(uint8_t v, uint8_t signature[64]) {
+    (void)v;
+    return !(signature[0] & 0x80) &&
+           !(signature[0] == 0) &&
+           !(signature[1] & 0x80) &&
+           !(signature[32] & 0x80) &&
+           !(signature[32] == 0 && !(signature[33] & 0x80));
+}
+
 bool eos_signTx(EosSignedTx *tx) {
     if (!eos_signingIsInited()) {
         fsm_sendFailure(FailureType_Failure_Other, "Must call EosSignTx first");
@@ -338,7 +347,8 @@ bool eos_signTx(EosSignedTx *tx) {
 
     uint8_t sig[64];
     uint8_t v;
-    if (ecdsa_sign_digest(&secp256k1, node.private_key, hash, sig, &v, NULL) != 0) {
+    if (ecdsa_sign_digest(&secp256k1, node.private_key, hash, sig, &v,
+                          eos_is_canonic) != 0) {
         fsm_sendFailure(FailureType_Failure_Other, "Signing failed");
         eos_signingAbort();
         return false;
