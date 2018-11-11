@@ -101,10 +101,8 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
         (int)msg->has_transfer +
         (int)msg->has_delegate +
         (int)msg->has_undelegate +
-        (int)msg->has_buy_ram +
-        (int)msg->has_buy_ram_bytes +
-        (int)msg->has_sell_ram +
-        (int)msg->has_vote_producer;
+        (int)msg->has_refund +
+        0;
     CHECK_PARAM(action_count == 1, "Eos signing can only handle one action at a time");
 
     if (eos_actionsRemaining() < 1) {
@@ -122,6 +120,9 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
             goto action_compile_failed;
     } else if (msg->has_undelegate) {
         if (!eos_compileActionUndelegate(&msg->common, &msg->undelegate))
+            goto action_compile_failed;
+    } else if (msg->has_refund) {
+        if (!eos_compileActionRefund(&msg->common, &msg->refund))
             goto action_compile_failed;
     } else {
         fsm_sendFailure(FailureType_Failure_Other, "Unknown action");

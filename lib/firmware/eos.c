@@ -414,6 +414,33 @@ bool eos_compileActionUndelegate(const EosActionCommon *common,
     return true;
 }
 
+bool eos_compileActionRefund(const EosActionCommon *common,
+                             const EosActionRefund *action) {
+    CHECK_PARAM_RET(common->name == EOS_Refund, "Incorrect action name", false);
+
+    char owner[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(action->owner, owner),
+                    "Invalid name", false);
+
+    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
+                 "Refund", "Do you want reclaim all pending unstaked tokens belonging to %s?\n",
+                 owner)) {
+        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
+        eos_signingAbort();
+        return false;
+    }
+
+    if (!eos_compileActionCommon(common))
+        return false;
+
+    uint32_t size = 8;
+    eos_hashUInt(&hasher_preimage, size);
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->owner, 8);
+
+    return true;
+}
+
 static int eos_is_canonic(uint8_t v, uint8_t signature[64]) {
     (void)v;
     return !(signature[0] & 0x80) &&

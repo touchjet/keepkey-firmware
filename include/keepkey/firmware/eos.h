@@ -35,10 +35,12 @@ typedef enum _EosActionName {
     EOS_Active     = 0x3232eda800000000L,
     EOS_Delegate   = 0x4aa2a61b2a000000L,
     EOS_Undelegate = 0xd4d2a8a986ca8000L,
+    EOS_Refund     = 0xba97a9a400000000L,
 } EosActionName;
 
 typedef struct _EosActionCommon EosActionCommon;
 typedef struct _EosActionDelegate EosActionDelegate;
+typedef struct _EosActionRefund EosActionRefund;
 typedef struct _EosActionTransfer EosActionTransfer;
 typedef struct _EosActionUndelegate EosActionUndelegate;
 typedef struct _EosAsset EosAsset;
@@ -87,6 +89,10 @@ bool eos_compileActionDelegate(const EosActionCommon *common,
 /// \returns true iff successful.
 bool eos_compileActionUndelegate(const EosActionCommon *common,
                                  const EosActionUndelegate *action);
+
+/// \returns true iff successful.
+bool eos_compileActionRefund(const EosActionCommon *common,
+                             const EosActionRefund *action);
 
 bool eos_signTx(EosSignedTx *sig);
 
