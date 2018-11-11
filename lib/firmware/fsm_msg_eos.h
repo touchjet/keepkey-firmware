@@ -110,6 +110,9 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
     if (msg->has_transfer) {
         if (!eos_compileActionTransfer(&msg->common, &msg->transfer))
             goto action_compile_failed;
+    } else if (msg->has_delegate) {
+        if (!eos_compileActionDelegate(&msg->common, &msg->delegate))
+            goto action_compile_failed;
     } else {
         fsm_sendFailure(FailureType_Failure_Other, "Unknown action");
         eos_signingAbort();

@@ -262,22 +262,22 @@ bool eos_compilePermissionLevel(const EosPermissionLevel *auth) {
 }
 
 bool eos_compileActionTransfer(const EosActionCommon *common,
-                               const EosActionTransfer *transfer) {
+                               const EosActionTransfer *action) {
     if (!(actions_remaining--))
         return false;
 
     CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
 
     char asset[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&transfer->quantity, asset),
+    CHECK_PARAM_RET(eos_formatAsset(&action->quantity, asset),
                     "Invalid asset format", false);
 
     char sender[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(transfer->sender, sender),
+    CHECK_PARAM_RET(eos_formatName(action->sender, sender),
                     "Invalid name", false);
 
     char receiver[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(transfer->receiver, receiver),
+    CHECK_PARAM_RET(eos_formatName(action->receiver, receiver),
                     "Invalid name", false);
 
     if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
@@ -293,15 +293,73 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
     if (!eos_compileActionCommon(common))
         return false;
 
-    hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->sender, 8);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&transfer->receiver, 8);
+    size_t memo_len = strlen(action->memo);
 
-    if (!eos_compileAsset(&transfer->quantity))
+    uint32_t size = 8 + 8 + 16 + memo_len;
+    eos_hashUInt(&hasher_preimage, size);
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->sender, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->receiver, 8);
+
+    if (!eos_compileAsset(&action->quantity))
         return false;
 
-    size_t memo_len = strlen(transfer->memo);
-    if (256 < memo_len || !eos_compileString(transfer->memo))
+    if (256 < memo_len || !eos_compileString(action->memo))
         return false;
+
+    return true;
+}
+
+bool eos_compileActionDelegate(const EosActionCommon *common,
+                               const EosActionDelegate *action) {
+    if (!(actions_remaining--))
+        return false;
+
+    CHECK_PARAM_RET(common->name == EOS_Delegate, "Incorrect action name", false);
+
+    char sender[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(action->sender, sender),
+                    "Invalid name", false);
+
+    char receiver[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(action->receiver, receiver),
+                    "Invalid name", false);
+
+    char cpu[EOS_ASSET_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatAsset(&action->cpu_quantity, cpu),
+                    "Invalid asset format", false);
+
+    char net[EOS_ASSET_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatAsset(&action->net_quantity, net),
+                    "Invalid asset format", false);
+
+    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
+                 "Delegate", "Do you want to %s resources from %s to %s?\n"
+                 "CPU: %s, NET: %s",
+                 (action->has_transfer && action->transfer) ? "transfer" : "delegate",
+                 sender, receiver, cpu, net)) {
+        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
+        eos_signingAbort();
+        return false;
+    }
+
+    if (!eos_compileActionCommon(common))
+        return false;
+
+    uint32_t size = 8 + 8 + 16 + 16 + 1;
+    eos_hashUInt(&hasher_preimage, size);
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->sender, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->receiver, 8);
+
+    if (!eos_compileAsset(&action->net_quantity))
+        return false;
+
+    if (!eos_compileAsset(&action->cpu_quantity))
+        return false;
+
+    uint8_t is_transfer = action->has_transfer ? 1 : 0;
+    hasher_Update(&hasher_preimage, &is_transfer, 1);
 
     return true;
 }
