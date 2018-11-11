@@ -28,16 +28,19 @@
 #define EOS_NAME_STR_SIZE  (12 + 1 + 1)
 #define EOS_ASSET_STR_SIZE (1 + 21 + 1 + 12 + 1)
 
+// C++ constexpr would be neat here...
 typedef enum _EosActionName {
-    EOS_Transfer = 0xcdcd3c2d57000000L,
-    EOS_Owner    = 0xa726ab8000000000L,
-    EOS_Active   = 0x3232eda800000000L,
-    EOS_Delegate = 0x4aa2a61b2a000000L,
+    EOS_Transfer   = 0xcdcd3c2d57000000L,
+    EOS_Owner      = 0xa726ab8000000000L,
+    EOS_Active     = 0x3232eda800000000L,
+    EOS_Delegate   = 0x4aa2a61b2a000000L,
+    EOS_Undelegate = 0xd4d2a8a986ca8000L,
 } EosActionName;
 
 typedef struct _EosActionCommon EosActionCommon;
 typedef struct _EosActionDelegate EosActionDelegate;
 typedef struct _EosActionTransfer EosActionTransfer;
+typedef struct _EosActionUndelegate EosActionUndelegate;
 typedef struct _EosAsset EosAsset;
 typedef struct _EosPermissionLevel EosPermissionLevel;
 typedef struct _EosSignedTx EosSignedTx;
@@ -78,6 +81,10 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
 /// \returns true iff successful.
 bool eos_compileActionDelegate(const EosActionCommon *common,
                                const EosActionDelegate *action);
+
+/// \returns true iff successful.
+bool eos_compileActionUndelegate(const EosActionCommon *common,
+                                 const EosActionUndelegate *action);
 
 bool eos_signTx(EosSignedTx *sig);
 

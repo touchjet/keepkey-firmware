@@ -364,6 +364,56 @@ bool eos_compileActionDelegate(const EosActionCommon *common,
     return true;
 }
 
+bool eos_compileActionUndelegate(const EosActionCommon *common,
+                                 const EosActionUndelegate *action) {
+    if (!(actions_remaining--))
+        return false;
+
+    CHECK_PARAM_RET(common->name == EOS_Undelegate, "Incorrect action name", false);
+
+    char sender[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(action->sender, sender),
+                    "Invalid name", false);
+
+    char receiver[EOS_NAME_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatName(action->receiver, receiver),
+                    "Invalid name", false);
+
+    char cpu[EOS_ASSET_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatAsset(&action->cpu_quantity, cpu),
+                    "Invalid asset format", false);
+
+    char net[EOS_ASSET_STR_SIZE];
+    CHECK_PARAM_RET(eos_formatAsset(&action->net_quantity, net),
+                    "Invalid asset format", false);
+
+    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
+                 "Undelegate", "Do you want to remove delegation of resources from %s to %s?\n"
+                 "CPU: %s, NET: %s",
+                 sender, receiver, cpu, net)) {
+        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
+        eos_signingAbort();
+        return false;
+    }
+
+    if (!eos_compileActionCommon(common))
+        return false;
+
+    uint32_t size = 8 + 8 + 16 + 16;
+    eos_hashUInt(&hasher_preimage, size);
+
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->sender, 8);
+    hasher_Update(&hasher_preimage, (const uint8_t*)&action->receiver, 8);
+
+    if (!eos_compileAsset(&action->net_quantity))
+        return false;
+
+    if (!eos_compileAsset(&action->cpu_quantity))
+        return false;
+
+    return true;
+}
+
 static int eos_is_canonic(uint8_t v, uint8_t signature[64]) {
     (void)v;
     return !(signature[0] & 0x80) &&
