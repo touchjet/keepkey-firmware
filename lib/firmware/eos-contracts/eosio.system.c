@@ -32,10 +32,17 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#define CHECK_COMMON(ACTION) \
+    do { \
+        CHECK_PARAM_RET(common->account == EOS_eosio_system, \
+                        "Incorrect account name", false); \
+        CHECK_PARAM_RET(common->name == (ACTION), \
+                        "Incorrect action name", false); \
+    } while(0)
+
 bool eos_compileActionDelegate(const EosActionCommon *common,
                                const EosActionDelegate *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Delegate, "Incorrect action name", false);
+    CHECK_COMMON(EOS_Delegate);
 
     char sender[EOS_NAME_STR_SIZE];
     CHECK_PARAM_RET(eos_formatName(action->sender, sender),
@@ -86,8 +93,7 @@ bool eos_compileActionDelegate(const EosActionCommon *common,
 
 bool eos_compileActionUndelegate(const EosActionCommon *common,
                                  const EosActionUndelegate *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Undelegate, "Incorrect action name", false);
+    CHECK_COMMON(EOS_Undelegate);
 
     char sender[EOS_NAME_STR_SIZE];
     CHECK_PARAM_RET(eos_formatName(action->sender, sender),
@@ -134,8 +140,7 @@ bool eos_compileActionUndelegate(const EosActionCommon *common,
 
 bool eos_compileActionRefund(const EosActionCommon *common,
                              const EosActionRefund *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Refund, "Incorrect action name", false);
+    CHECK_COMMON(EOS_Refund);
 
     char owner[EOS_NAME_STR_SIZE];
     CHECK_PARAM_RET(eos_formatName(action->owner, owner),

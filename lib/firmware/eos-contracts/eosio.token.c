@@ -32,10 +32,17 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#define CHECK_COMMON(ACTION) \
+    do { \
+        CHECK_PARAM_RET(common->account == EOS_eosio_token, \
+                        "Incorrect account name", false); \
+        CHECK_PARAM_RET(common->name == (ACTION), \
+                        "Incorrect action name", false); \
+    } while(0)
+
 bool eos_compileActionTransfer(const EosActionCommon *common,
                                const EosActionTransfer *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_token, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
+    CHECK_COMMON(EOS_Transfer);
 
     char asset[EOS_ASSET_STR_SIZE];
     CHECK_PARAM_RET(eos_formatAsset(&action->quantity, asset),
