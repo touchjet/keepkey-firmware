@@ -19,6 +19,8 @@
 
 #include "keepkey/firmware/eos.h"
 
+#include "eos.h"
+
 #include "keepkey/board/confirm_sm.h"
 #include "keepkey/firmware/fsm.h"
 #include "keepkey/firmware/home_sm.h"
@@ -33,17 +35,9 @@
 #include <stdio.h>
 #include <time.h>
 
-#define CHECK_PARAM_RET(cond, errormsg, retval) \
-    if (!(cond)) { \
-        fsm_sendFailure(FailureType_Failure_Other, (errormsg)); \
-        layoutHome(); \
-        return retval; \
-    }
-
-#define MAX(a, b) ({ typeof(a) _a = (a); typeof(b) _b = (b); _a > _b ? _a : _b; })
+CONFIDENTIAL Hasher hasher_preimage;
 
 static bool inited = false;
-static CONFIDENTIAL Hasher hasher_preimage;
 static CONFIDENTIAL HDNode node;
 static EosTxHeader header;
 static uint32_t actions_remaining = 0;
@@ -264,181 +258,6 @@ bool eos_compilePermissionLevel(const EosPermissionLevel *auth) {
 
     hasher_Update(&hasher_preimage, (const uint8_t*)&auth->actor, 8);
     hasher_Update(&hasher_preimage, (const uint8_t*)&auth->permission, 8);
-
-    return true;
-}
-
-bool eos_compileActionTransfer(const EosActionCommon *common,
-                               const EosActionTransfer *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_token, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
-
-    char asset[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&action->quantity, asset),
-                    "Invalid asset format", false);
-
-    char sender[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->sender, sender),
-                    "Invalid name", false);
-
-    char receiver[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->receiver, receiver),
-                    "Invalid name", false);
-
-    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
-                 "Transfer", "Do you want to send %s from %s to %s?",
-                 asset, sender, receiver)) {
-        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
-        eos_signingAbort();
-        return false;
-    }
-
-    // TODO: confirm memo
-
-    if (!eos_compileActionCommon(common))
-        return false;
-
-    size_t memo_len = strlen(action->memo);
-
-    uint32_t size = 8 + 8 + 16 + memo_len;
-    eos_hashUInt(&hasher_preimage, size);
-
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->sender, 8);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->receiver, 8);
-
-    if (!eos_compileAsset(&action->quantity))
-        return false;
-
-    if (256 < memo_len || !eos_compileString(action->memo))
-        return false;
-
-    return true;
-}
-
-bool eos_compileActionDelegate(const EosActionCommon *common,
-                               const EosActionDelegate *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Delegate, "Incorrect action name", false);
-
-    char sender[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->sender, sender),
-                    "Invalid name", false);
-
-    char receiver[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->receiver, receiver),
-                    "Invalid name", false);
-
-    char cpu[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&action->cpu_quantity, cpu),
-                    "Invalid asset format", false);
-
-    char net[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&action->net_quantity, net),
-                    "Invalid asset format", false);
-
-    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
-                 "Delegate", "Do you want to %s resources from %s to %s?\n"
-                 "CPU: %s, NET: %s",
-                 (action->has_transfer && action->transfer) ? "transfer" : "delegate",
-                 sender, receiver, cpu, net)) {
-        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
-        eos_signingAbort();
-        return false;
-    }
-
-    if (!eos_compileActionCommon(common))
-        return false;
-
-    uint32_t size = 8 + 8 + 16 + 16 + 1;
-    eos_hashUInt(&hasher_preimage, size);
-
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->sender, 8);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->receiver, 8);
-
-    if (!eos_compileAsset(&action->net_quantity))
-        return false;
-
-    if (!eos_compileAsset(&action->cpu_quantity))
-        return false;
-
-    uint8_t is_transfer = action->has_transfer ? 1 : 0;
-    hasher_Update(&hasher_preimage, &is_transfer, 1);
-
-    return true;
-}
-
-bool eos_compileActionUndelegate(const EosActionCommon *common,
-                                 const EosActionUndelegate *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Undelegate, "Incorrect action name", false);
-
-    char sender[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->sender, sender),
-                    "Invalid name", false);
-
-    char receiver[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->receiver, receiver),
-                    "Invalid name", false);
-
-    char cpu[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&action->cpu_quantity, cpu),
-                    "Invalid asset format", false);
-
-    char net[EOS_ASSET_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatAsset(&action->net_quantity, net),
-                    "Invalid asset format", false);
-
-    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
-                 "Undelegate", "Do you want to remove delegation of resources from %s to %s?\n"
-                 "CPU: %s, NET: %s",
-                 sender, receiver, cpu, net)) {
-        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
-        eos_signingAbort();
-        return false;
-    }
-
-    if (!eos_compileActionCommon(common))
-        return false;
-
-    uint32_t size = 8 + 8 + 16 + 16;
-    eos_hashUInt(&hasher_preimage, size);
-
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->sender, 8);
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->receiver, 8);
-
-    if (!eos_compileAsset(&action->net_quantity))
-        return false;
-
-    if (!eos_compileAsset(&action->cpu_quantity))
-        return false;
-
-    return true;
-}
-
-bool eos_compileActionRefund(const EosActionCommon *common,
-                             const EosActionRefund *action) {
-    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
-    CHECK_PARAM_RET(common->name == EOS_Refund, "Incorrect action name", false);
-
-    char owner[EOS_NAME_STR_SIZE];
-    CHECK_PARAM_RET(eos_formatName(action->owner, owner),
-                    "Invalid name", false);
-
-    if (!confirm(ButtonRequestType_ButtonRequest_ConfirmEosAction,
-                 "Refund", "Do you want reclaim all pending unstaked tokens belonging to %s?\n",
-                 owner)) {
-        fsm_sendFailure(FailureType_Failure_ActionCancelled, "Action Cancelled");
-        eos_signingAbort();
-        return false;
-    }
-
-    if (!eos_compileActionCommon(common))
-        return false;
-
-    uint32_t size = 8;
-    eos_hashUInt(&hasher_preimage, size);
-
-    hasher_Update(&hasher_preimage, (const uint8_t*)&action->owner, 8);
 
     return true;
 }

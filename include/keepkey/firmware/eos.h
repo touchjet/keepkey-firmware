@@ -44,10 +44,6 @@ typedef enum _EosContractName {
 } EosContractName;
 
 typedef struct _EosActionCommon EosActionCommon;
-typedef struct _EosActionDelegate EosActionDelegate;
-typedef struct _EosActionRefund EosActionRefund;
-typedef struct _EosActionTransfer EosActionTransfer;
-typedef struct _EosActionUndelegate EosActionUndelegate;
 typedef struct _EosAsset EosAsset;
 typedef struct _EosPermissionLevel EosPermissionLevel;
 typedef struct _EosSignedTx EosSignedTx;
@@ -78,26 +74,16 @@ uint32_t eos_actionsRemaining(void);
 void eos_hashUInt(Hasher *hasher, uint64_t val);
 
 /// \returns true iff successful.
+bool eos_compileAsset(const EosAsset *asset);
+
+/// \returns true iff successful.
+bool eos_compileString(const char *str);
+
+/// \returns true iff successful.
 bool eos_compileActionCommon(const EosActionCommon *common);
 
 /// \returns true iff successful.
 bool eos_compilePermissionLevel(const EosPermissionLevel *auth);
-
-/// \returns true iff successful.
-bool eos_compileActionTransfer(const EosActionCommon *common,
-                               const EosActionTransfer *action);
-
-/// \returns true iff successful.
-bool eos_compileActionDelegate(const EosActionCommon *common,
-                               const EosActionDelegate *action);
-
-/// \returns true iff successful.
-bool eos_compileActionUndelegate(const EosActionCommon *common,
-                                 const EosActionUndelegate *action);
-
-/// \returns true iff successful.
-bool eos_compileActionRefund(const EosActionCommon *common,
-                             const EosActionRefund *action);
 
 bool eos_signTx(EosSignedTx *sig);
 

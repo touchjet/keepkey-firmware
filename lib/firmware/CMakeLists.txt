@@ -4,6 +4,8 @@ set(sources
     coins.c
     crypto.c
     eos.c
+    eos-contracts/eosio.system.c
+    eos-contracts/eosio.token.c
     ethereum.c
     ethereum_tokens.c
     exchange.c
@@ -28,6 +30,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/scm_revision.h.in"
 include_directories(
   ${CMAKE_BINARY_DIR}/include
   ${CMAKE_SOURCE_DIR}/deps/crypto/trezor-crypto
+  ${CMAKE_SOURCE_DIR}/lib/firmware
   ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(kkfirmware ${sources})

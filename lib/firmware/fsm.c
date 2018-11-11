@@ -39,6 +39,8 @@
 #include "keepkey/firmware/coins.h"
 #include "keepkey/firmware/crypto.h"
 #include "keepkey/firmware/eos.h"
+#include "keepkey/firmware/eos-contracts/eosio.system.h"
+#include "keepkey/firmware/eos-contracts/eosio.token.h"
 #include "keepkey/firmware/ethereum.h"
 #include "keepkey/firmware/ethereum_tokens.h"
 #include "keepkey/firmware/exchange.h"
