@@ -66,6 +66,8 @@ void eos_signingAbort(void);
 
 bool eos_signingIsFinished(void);
 
+uint32_t eos_actionsRemaining(void);
+
 void eos_hashUInt(Hasher *hasher, uint64_t val);
 
 /// \returns true iff successful.

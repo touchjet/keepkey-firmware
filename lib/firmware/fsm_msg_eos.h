@@ -107,6 +107,13 @@ void fsm_msgEosTxActionAck(const EosTxActionAck *msg) {
         (int)msg->has_vote_producer;
     CHECK_PARAM(action_count == 1, "Eos signing can only handle one action at a time");
 
+    if (eos_actionsRemaining() < 1) {
+        fsm_sendFailure(FailureType_Failure_SyntaxError, "Action count mismatch");
+        eos_signingAbort();
+        layoutHome();
+        return;
+    }
+
     if (msg->has_transfer) {
         if (!eos_compileActionTransfer(&msg->common, &msg->transfer))
             goto action_compile_failed;

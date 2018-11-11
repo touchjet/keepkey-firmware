@@ -197,6 +197,10 @@ bool eos_signingIsFinished(void) {
     return inited && actions_remaining == 0;
 }
 
+uint32_t eos_actionsRemaining(void) {
+    return actions_remaining;
+}
+
 void eos_signingAbort(void) {
     inited = false;
     memzero(&hasher_preimage, sizeof(hasher_preimage));
@@ -227,6 +231,9 @@ bool eos_compileString(const char *str) {
 }
 
 bool eos_compileActionCommon(const EosActionCommon *common) {
+    if (!(actions_remaining--))
+        return false;
+
     if (!common->has_account)
         return false;
 
@@ -263,8 +270,7 @@ bool eos_compilePermissionLevel(const EosPermissionLevel *auth) {
 
 bool eos_compileActionTransfer(const EosActionCommon *common,
                                const EosActionTransfer *action) {
-    if (!(actions_remaining--))
-        return false;
+
 
     CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
 
@@ -312,9 +318,6 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
 
 bool eos_compileActionDelegate(const EosActionCommon *common,
                                const EosActionDelegate *action) {
-    if (!(actions_remaining--))
-        return false;
-
     CHECK_PARAM_RET(common->name == EOS_Delegate, "Incorrect action name", false);
 
     char sender[EOS_NAME_STR_SIZE];
@@ -366,9 +369,6 @@ bool eos_compileActionDelegate(const EosActionCommon *common,
 
 bool eos_compileActionUndelegate(const EosActionCommon *common,
                                  const EosActionUndelegate *action) {
-    if (!(actions_remaining--))
-        return false;
-
     CHECK_PARAM_RET(common->name == EOS_Undelegate, "Incorrect action name", false);
 
     char sender[EOS_NAME_STR_SIZE];
