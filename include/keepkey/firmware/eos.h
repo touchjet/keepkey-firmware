@@ -38,6 +38,11 @@ typedef enum _EosActionName {
     EOS_Refund     = 0xba97a9a400000000L,
 } EosActionName;
 
+typedef enum _EosContractName {
+    EOS_eosio_token  = 0x5530ea033482a600L,
+    EOS_eosio_system = 0x5530ea031ec65520L,
+} EosContractName;
+
 typedef struct _EosActionCommon EosActionCommon;
 typedef struct _EosActionDelegate EosActionDelegate;
 typedef struct _EosActionRefund EosActionRefund;

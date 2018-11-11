@@ -270,8 +270,7 @@ bool eos_compilePermissionLevel(const EosPermissionLevel *auth) {
 
 bool eos_compileActionTransfer(const EosActionCommon *common,
                                const EosActionTransfer *action) {
-
-
+    CHECK_PARAM_RET(common->account == EOS_eosio_token, "Incorrect account name", false);
     CHECK_PARAM_RET(common->name == EOS_Transfer, "Incorrect action name", false);
 
     char asset[EOS_ASSET_STR_SIZE];
@@ -318,6 +317,7 @@ bool eos_compileActionTransfer(const EosActionCommon *common,
 
 bool eos_compileActionDelegate(const EosActionCommon *common,
                                const EosActionDelegate *action) {
+    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
     CHECK_PARAM_RET(common->name == EOS_Delegate, "Incorrect action name", false);
 
     char sender[EOS_NAME_STR_SIZE];
@@ -369,6 +369,7 @@ bool eos_compileActionDelegate(const EosActionCommon *common,
 
 bool eos_compileActionUndelegate(const EosActionCommon *common,
                                  const EosActionUndelegate *action) {
+    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
     CHECK_PARAM_RET(common->name == EOS_Undelegate, "Incorrect action name", false);
 
     char sender[EOS_NAME_STR_SIZE];
@@ -416,6 +417,7 @@ bool eos_compileActionUndelegate(const EosActionCommon *common,
 
 bool eos_compileActionRefund(const EosActionCommon *common,
                              const EosActionRefund *action) {
+    CHECK_PARAM_RET(common->account == EOS_eosio_system, "Incorrect account name", false);
     CHECK_PARAM_RET(common->name == EOS_Refund, "Incorrect action name", false);
 
     char owner[EOS_NAME_STR_SIZE];
