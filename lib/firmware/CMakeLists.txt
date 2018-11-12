@@ -6,6 +6,7 @@ set(sources
     eos.c
     eos-contracts/eosio.system.c
     eos-contracts/eosio.token.c
+    eos-contracts/generic.c
     ethereum.c
     ethereum_tokens.c
     exchange.c

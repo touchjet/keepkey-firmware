@@ -17,22 +17,16 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_FIRMWARE_EOS_H
-#define LIB_FIRMWARE_EOS_H
+#ifndef KEEPKEY_FIRMWARE_EOS_CONTRACTS_GENERIC_H
+#define KEEPKEY_FIRMWARE_EOS_CONTRACTS_GENERIC_H
 
-#include "trezor/crypto/hasher.h"
+#include <stdbool.h>
 
-#define CHECK_PARAM_RET(cond, errormsg, retval) \
-    if (!(cond)) { \
-        fsm_sendFailure(FailureType_Failure_Other, (errormsg)); \
-        layoutHome(); \
-        return retval; \
-    }
+typedef struct _EosActionCommon EosActionCommon;
+typedef struct _EosActionUnknown EosActionUnknown;
 
-#define MAX(a, b) ({ typeof(a) _a = (a); typeof(b) _b = (b); _a > _b ? _a : _b; })
-#define MIN(a, b) ({ typeof(a) _a = (a); typeof(b) _b = (b); _a < _b ? _a : _b; })
-
-extern CONFIDENTIAL Hasher hasher_preimage;
+/// \returns true iff successful.
+bool eos_compileActionUnknown(const EosActionCommon *common,
+                              const EosActionUnknown *action);
 
 #endif
-

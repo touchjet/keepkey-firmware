@@ -9,6 +9,8 @@ EosActionCommon.authorization         max_count:16  # FIXME: actual value?
 
 EosActionTransfer.memo                max_size:256
 
+EosActionUnknown.data                 max_size:256
+
 EosActionVoteProducer.producers       max_count:30
 
 EosSignedTx.signature_r               max_size:32
