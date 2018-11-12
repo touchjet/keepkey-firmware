@@ -1,6 +1,7 @@
 EosGetPublicKey.address_n             max_count:8
 
-EosPublicKey.public_key               max_size:65
+EosPublicKey.wif_public_key           max_size:65
+EosPublicKey.raw_public_key           max_size:33
 
 EosSignTx.address_n                   max_count:8
 EosSignTx.chain_id                    max_size:32

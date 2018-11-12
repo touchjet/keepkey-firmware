@@ -36,12 +36,17 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
     RESP_INIT(EosPublicKey);
 
     if (!eos_getPublicKey(node, curve, msg->kind,
-                          resp->public_key, sizeof(resp->public_key))) {
+                          resp->wif_public_key, sizeof(resp->wif_public_key))) {
         fsm_sendFailure(FailureType_Failure_Other, "Could not derive EOS pubkey");
         layoutHome();
         return;
     }
-    resp->has_public_key = true;
+    resp->has_wif_public_key = true;
+
+    resp->has_raw_public_key = true;
+    resp->raw_public_key.size = 33;
+    memcpy(resp->raw_public_key.bytes, node->public_key, 33);
+    _Static_assert(sizeof(resp->raw_public_key.bytes) == 33, "size mismatch");
 
     if (msg->has_show_display && msg->show_display) {
         char node_str[NODE_STRING_LENGTH];
@@ -55,7 +60,7 @@ void fsm_msgEosGetPublicKey(const EosGetPublicKey *msg) {
         }
 
         if (!confirm(ButtonRequestType_ButtonRequest_Address, node_str,
-                     "%s", resp->public_key)) {
+                     "%s", resp->wif_public_key)) {
             fsm_sendFailure(FailureType_Failure_ActionCancelled,
                             "Show EOS public key cancelled.");
             layoutHome();
